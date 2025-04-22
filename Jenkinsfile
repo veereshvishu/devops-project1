@@ -6,8 +6,11 @@ pipeline {
     }
     environment {
         DOCKER_IMAGE = 'veereshvishu/medicure'
+        DOCKER_REGISTRY = 'veereshvishu'
         KUBECONFIG_CREDENTIALS_ID = 'kubeconfig-id' // Jenkins credentials ID for kubeconfig
         registryCredential = 'dockerhub'            // Docker Hub credential ID in Jenkins
+        APP_NAME = 'sbapp'
+        KUBE_NAMESPACE = 'default'
     }
 
     stages {
@@ -41,21 +44,30 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                    sh '''
-                        kubectl apply -f deployment.yaml --kubeconfig=$KUBECONFIG
-                    '''
+                script {
+                    // Update deployment with new image
+                    sh """
+                        kubectl apply -f deployment.yaml -n ${KUBE_NAMESPACE}
+                    """
+                    
+                    // Verify deployment
+                    sh "kubectl rollout status deployment/${APP_NAME} -n ${KUBE_NAMESPACE}"
                 }
             }
         }
     }
 
     post {
+        
         success {
             echo 'Deployment successful!'
         }
         failure {
             echo 'Pipeline failed.'
+        }
+        always {
+            // Clean up workspace
+            cleanWs()
         }
     }
 }
