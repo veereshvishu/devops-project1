@@ -7,7 +7,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'veereshvishu/medicure'
         DOCKER_REGISTRY = 'veereshvishu'
-        KUBECONFIG_CREDENTIALS_ID = 'kubeconfig-id' // Jenkins credentials ID for kubeconfig
         registryCredential = 'dockerhub'            // Docker Hub credential ID in Jenkins
         APP_NAME = 'sbapp'
         KUBE_NAMESPACE = 'default'
