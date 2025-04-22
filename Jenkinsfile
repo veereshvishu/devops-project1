@@ -7,7 +7,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'veereshvishu/medicure'
         KUBECONFIG_CREDENTIALS_ID = 'kubeconfig-id' // Jenkins credentials ID for kubeconfig
-        registryCredential = 'dockerhub'       // Docker Hub credential ID in Jenkins
+        registryCredential = 'dockerhub'            // Docker Hub credential ID in Jenkins
     }
 
     stages {
@@ -24,15 +24,16 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            sh 'sudo docker build -t $DOCKER_IMAGE .'
-
+            steps {
+                sh 'sudo docker build -t $DOCKER_IMAGE .'
+            }
         }
 
         stage('Push Docker Image') {
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
-                        dockerImage.push("latest")
+                        docker.image(DOCKER_IMAGE).push("latest")
                     }
                 }
             }
