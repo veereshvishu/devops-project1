@@ -1,6 +1,9 @@
 pipeline {
     agent { label 'Jenkins-Agent' }
-
+    tools {
+        jdk 'OracleJDK17'
+        maven 'maven3'
+    }
     environment {
         DOCKER_IMAGE = 'veereshvishu/medicure'
         KUBECONFIG_CREDENTIALS_ID = 'kubeconfig-id' // Jenkins credentials ID for kubeconfig
