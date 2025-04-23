@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: sbapp
-        image: nik848/medicure:1.0
+        image: veereshvishu/medicure:latest
         imagePullPolicy: Always
         ports:
         - name: sbapp

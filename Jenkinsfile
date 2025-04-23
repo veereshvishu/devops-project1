@@ -5,7 +5,6 @@ pipeline {
         maven 'maven3'
     }
     environment {
-        DOCKER_IMAGE = 'veereshvishu/medicure'
         DOCKER_REGISTRY = 'veereshvishu'
         registryCredential = 'dockerhub'            // Docker Hub credential ID in Jenkins
         APP_NAME = 'sbapp'
@@ -25,17 +24,12 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
-            }
-        }
-
-        stage('Push Docker Image') {
+        stage('Build & Push Image') {
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
-                        docker.image(DOCKER_IMAGE).push("latest")
+                        docker.build("${DOCKER_REGISTRY}/${APP_NAME}:${env.BUILD_ID}")
+                              .push()
                     }
                 }
             }
@@ -44,12 +38,11 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Update deployment with new image
                     sh """
-                        kubectl apply -f deployment.yaml -n ${KUBE_NAMESPACE}
+                        kubectl set image deployment/sbapp \
+                        sbapp=${DOCKER_REGISTRY}/${APP_NAME}:${env.BUILD_ID} \
+                        --record -n ${KUBE_NAMESPACE}
                     """
-                    
-                    // Verify deployment
                     sh "kubectl rollout status deployment/${APP_NAME} -n ${KUBE_NAMESPACE}"
                 }
             }
@@ -57,7 +50,6 @@ pipeline {
     }
 
     post {
-        
         success {
             echo 'Deployment successful!'
         }
@@ -65,7 +57,6 @@ pipeline {
             echo 'Pipeline failed.'
         }
         always {
-            // Clean up workspace
             cleanWs()
         }
     }
